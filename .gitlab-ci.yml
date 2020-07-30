@@ -1,38 +1,12 @@
-#ok
-#image: gradle:jdk8
-
-#variables:
-#  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-
-#before_script:
-#  - export GRADLE_USER_HOME=`pwd`/.gradle
-#  - chmod +x ./gradlew
-
-#stages:
-#  - build
-#  - test
-
-#build:
-#  stage: build
-#  script: ./gradlew --build-cache assemble
-#  cache:
-#    key: "$CI_COMMIT_REF_NAME"
-#    policy: push
-#    paths:
-#      - build
-#      - .gradle
-
-
 image: java:8-jdk
 
 stages:
   - build
-  - test
+  #- test
   - deploy
 
 before_script:
-  #  - echo `pwd` # debug
-  #  - echo "$CI_BUILD_NAME, $CI_BUILD_REF_NAME $CI_BUILD_STAGE" # debug
+  - docker info
   - export GRADLE_USER_HOME=`pwd`/.gradle
   - chmod +x ./gradlew
 
@@ -45,23 +19,27 @@ build:
   stage: build
   script:
     - ./gradlew assemble
+    - cp build/libs/*.jar /home/ubuntu/deploy/cast-server
   artifacts:
     paths:
-      - build/libs/*.jar
-    expire_in: 1 week
-  only:
-    - master
+      - build/libs/ #*.jar
+    #expire_in: 1 week
+  #only:
+  #    - master
 
-test:
-  stage: test
+deploy:
+  stage: deploy
   script:
-    - ./gradlew check
+    - cd /home/ubuntu/deploy/
+    - pwd
+    - /home/ubuntu/deploy/deploy.sh
+    #docker build -f /home/ubuntu/deploy/Dockerfile-be -t aliaspace/cast:be-4.0.0 .
+    #/home/ubuntu/deploy/deploy.sh
 
-#non funge ancora
-#deploy:
-#  stage: deploy
-#  script:
-#    - ./gradlew deploy
+    #test:
+    #    stage: test
+    #    script:
+    #      - ./gradlew check
 
 after_script:
   - echo "End CI"
